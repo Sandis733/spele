@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mana spēle</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: white;
+            text-align: center;
+        }
+
+        .screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameScreen {
+            display: none;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background: #4caf50;
+            color: white;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .rules {
+            max-width: 500px;
+            text-align: left;
+            background: #333;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #gameArea {
+            width: 80%;
+            height: 300px;
+            background: #333;
+            margin: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sākuma ekrāns -->
+    <div id="startScreen" class="screen">
+        <h1>Mana spēle</h1>
+
+        <h2>Mērķis</h2>
+        <p>Savāc pēc iespējas vairāk punktu un uzvari spēli!</p>
+
+        <div class="rules">
+            <h2>Noteikumi</h2>
+            <p><strong>1. Darbība:</strong> Spēlētājs pārvieto tēlu un vāc punktus.</p>
+            <p><strong>2. Uzvara:</strong> Spēlētājs uzvar, savācot 10 punktus.</p>
+            <p><strong>3. Zaudējums:</strong> Spēlētājs zaudē, ja beidzas dzīvības.</p>
+        </div>
+
+        <p><strong>Vadība:</strong> Izmanto tastatūras bulttaustiņus.</p>
+
+        <button onclick="startGame()">Sākt spēli</button>
+    </div>
+
+    <!-- Spēles ekrāns -->
+    <div id="gameScreen" class="screen">
+        <h1>Mana spēle</h1>
+
+        <h2>Punkti: <span id="score">0</span></h2>
+
+        <p><strong>Vadība:</strong> Izmanto bulttaustiņus.</p>
+
+        <div id="gameArea">
+            <p>Šeit notiek spēle!</p>
+        </div>
+
+        <button onclick="backToMenu()">Atgriezties</button>
+    </div>
+
+    <script>
+        let score = 0;
+
+        function startGame() {
+            score = 0;
+            document.getElementById("score").textContent = score;
+
+            document.getElementById("startScreen").style.display = "none";
+            document.getElementById("gameScreen").style.display = "flex";
+        }
+
+        function backToMenu() {
+            document.getElementById("gameScreen").style.display = "none";
+            document.getElementById("startScreen").style.display = "flex";
+        }
+    </script>
+
+</body>
+</html>

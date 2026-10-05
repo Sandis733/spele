@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake 🐍</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #101820, #162b22);
+        font-family: Arial, sans-serif;
+        color: white;
+    }
+
+    .game {
+        text-align: center;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+        color: #58ff72;
+        text-shadow: 0 0 15px #35ff55;
+    }
+
+    .info {
+        display: flex;
+        justify-content: space-between;
+        margin: 0 auto 10px;
+        max-width: 400px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    canvas {
+        background: #07100a;
+        border: 3px solid #45ff61;
+        border-radius: 10px;
+        box-shadow: 0 0 25px rgba(69,255,97,.35);
+        max-width: 90vw;
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        background: #45ff61;
+        color: #061008;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #7dff91;
+        transform: scale(1.05);
+    }
+
+    .controls {
+        margin-top: 15px;
+        display: grid;
+        grid-template-columns: repeat(3, 55px);
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .controls button {
+        margin: 0;
+        padding: 10px;
+        font-size: 22px;
+    }
+
+    .empty {
+        visibility: hidden;
+    }
+
+    #message {
+        margin-top: 10px;
+        color: #ffdf5d;
+        font-weight: bold;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="game">
+    <h1>🐍 SNAKE</h1>
+
+    <div class="info">
+        <span>Rezultāts: <span id="score">0</span></span>
+        <span>Rekords: <span id="highScore">0</span></span>
+    </div>
+
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <div id="message">Izmanto bultiņas vai WASD!</div>
+
+    <button onclick="restartGame()">🔄 Sākt no jauna</button>
+
+    <div class="controls">
+        <button class="empty">.</button>
+        <button onclick="changeDirection('up')">⬆️</button>
+        <button class="empty">.</button>
+
+        <button onclick="changeDirection('left')">⬅️</button>
+        <button onclick="changeDirection('down')">⬇️</button>
+        <button onclick="changeDirection('right')">➡️</button>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const gridSize = 20;
+const tileCount = canvas.width / gridSize;
+
+let snake;
+let food;
+let direction;
+let nextDirection;
+let score;
+let gameOver;
+let gameLoop;
+
+let highScore = Number(localStorage.getItem("snakeHighScore")) || 0;
+document.getElementById("highScore").textContent = highScore;
+
+function startGame() {
+    snake = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+    ];
+
+    direction = "right";
+    nextDirection = "right";
+    score = 0;
+    gameOver = false;
+
+    document.getElementById("score").textContent = score;
+    document.getElementById("message").textContent =
+        "Izmanto bultiņas vai WASD!";
+
+    createFood();
+
+    clearInterval(gameLoop);
+    gameLoop = setInterval(update, 100);
+}
+
+function createFood() {
+    do {
+        food = {
+            x: Math.floor(Math.random() * tileCount),
+            y: Math.floor(Math.random() * tileCount)
+        };
+    } while (
+        snake.some(part => part.x === food.x && part.y === food.y)
+    );
+}
+
+function update() {
+    if (gameOver) return;
+
+    direction = nextDirection;
+
+    const head = {
+        x: snake[0].x,
+        y: snake[0].y
+    };
+
+    if (direction === "up") head.y--;
+    if (direction === "down") head.y++;
+    if (direction === "left") head.x--;
+    if (direction === "right") head.x++;
+
+    // Sienas
+    if (
+        head.x < 0 ||
+        head.x >= tileCount ||
+        head.y < 0 ||
+        head.y >= tileCount
+    ) {
+        endGame();
+        return;
+    }
+
+    // Iekod sev
+    if (
+        snake.some(part =>
+            part.x === head.x && part.y === head.y
+        )
+    ) {
+        endGame();
+        return;
+    }
+
+    snake.unshift(head);
+
+    // Ēdiens
+    if (head.x === food.x && head.y === food.y) {
+        score++;
+
+        document.getElementById("score").textContent = score;
+
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("snakeHighScore", highScore);
+            document.getElementById("highScore").textContent = highScore;
+        }
+
+        createFood();
+    } else {
+        snake.pop();
+    }
+
+    draw();
+}
+
+function draw() {
+    // Fons
+    ctx.fillStyle = "#07100a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Režģis
+    ctx.strokeStyle = "rgba(70,255,90,0.06)";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= canvas.width; i += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(canvas.width, i);
+        ctx.stroke();
+    }
+
+    // Ēdiens
+    ctx.fillStyle = "#ff3b3b";
+    ctx.shadowColor = "#ff3b3b";
+    ctx.shadowBlur = 15;
+
+    ctx.beginPath();
+    ctx.arc(
+        food.x * gridSize + gridSize / 2,
+        food.y * gridSize + gridSize / 2,
+        7,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    // Čūska
+    snake.forEach((part, index) => {
+        ctx.fillStyle = index === 0 ? "#9affaa" : "#45ff61";
+
+        ctx.fillRect(
+            part.x * gridSize + 2,
+            part.y * gridSize + 2,
+            gridSize - 4,
+            gridSize - 4
+        );
+
+        // Acis
+        if (index === 0) {
+            ctx.fillStyle = "#061008";
+
+            let eye1;
+            let eye2;
+
+            if (direction === "right") {
+                eye1 = [14, 6];
+                eye2 = [14, 14];
+            } else if (direction === "left") {
+                eye1 = [6, 6];
+                eye2 = [6, 14];
+            } else if (direction === "up") {
+                eye1 = [6, 6];
+                eye2 = [14, 6];
+            } else {
+                eye1 = [6, 14];
+                eye2 = [14, 14];
+            }
+
+            ctx.fillRect(
+                part.x * gridSize + eye1[0],
+                part.y * gridSize + eye1[1],
+                3,
+                3
+            );
+
+            ctx.fillRect(
+                part.x * gridSize + eye2[0],
+                part.y * gridSize + eye2[1],
+                3,
+                3
+            );
+        }
+    });
+}
+
+function changeDirection(newDirection) {
+    if (newDirection === "up" && direction !== "down") {
+        nextDirection = "up";
+    }
+
+    if (newDirection === "down" && direction !== "up") {
+        nextDirection = "down";
+    }
+
+    if (newDirection === "left" && direction !== "right") {
+        nextDirection = "left";
+    }
+
+    if (newDirection === "right" && direction !== "left") {
+        nextDirection = "right";
+    }
+}
+
+document.addEventListener("keydown", event => {
+    const key = event.key.toLowerCase();
+
+    if (key === "arrowup" || key === "w") {
+        changeDirection("up");
+    }
+
+    if (key === "arrowdown" || key === "s") {
+        changeDirection("down");
+    }
+
+    if (key === "arrowleft" || key === "a") {
+        changeDirection("left");
+    }
+
+    if (key === "arrowright" || key === "d") {
+        changeDirection("right");
+    }
+
+    if (key === " " && gameOver) {
+        restartGame();
+    }
+});
+
+function endGame() {
+    gameOver = true;
+    clearInterval(gameLoop);
+
+    document.getElementById("message").textContent =
+        "💀 Spēle beigusies! Nospied “Sākt no jauna”.";
+
+    draw();
+}
+
+function restartGame() {
+    startGame();
+}
+
+startGame();
+</script>
+
+</body>
+</html>
